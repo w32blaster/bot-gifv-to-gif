@@ -3,8 +3,8 @@
 #
 FROM alpine AS builder-ffmpeg
 
-ARG FFMPEG_VERSION=4.1.3
-ARG FFMPEG_URL=https://johnvansickle.com/ffmpeg/releases/ffmpeg-$FFMPEG_VERSION-64bit-static.tar.xz
+ARG FFMPEG_URL=https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
+
 
 # Download ffmpeg
 ADD ${FFMPEG_URL} /tmp/ffmpeg.tar.xz
@@ -23,20 +23,35 @@ RUN cp "$(which gifsicle)" /tmp/gifsicle
 
 
 #
-# Stage 2: Compile and build Go app
+# Stage 3: Compile and build Go app
 #
 
-# ...
+FROM golang:alpine AS build-go
 
+# Install Git for go get
+RUN set -eux; \
+    apk add --no-cache --virtual git
+
+ENV GO_WORKDIR $GOPATH/src/github.com/w32blaster/bot-gifv-to-gif/
+
+ADD . $GO_WORKDIR
+RUN cd $GO_WORKDIR
+RUN go get -u gopkg.in/telegram-bot-api.v4 
+
+# RUN TESTS HERE AS WELL!
+
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o bot .
+RUN cp bot /tmp
 
 #
-# Stage 3: build final image
+# Stage 4: build final image
 #
 FROM scratch
 
 COPY --from=builder-ffmpeg /tmp/ffmpeg*/ffmpeg /bin/
 COPY --from=builder-giflossy /tmp/gifsicle /bin/
+COPY --from=builder-go /tmp/bot /bin/
 
-RUN chmod +x /bin/ffmpeg && chmod +x /bin/gifsicle
+RUN chmod +x /bin/ffmpeg && chmod +x /bin/gifsicle && chmod +x /bin/bot
 
-# ENTRYPOINT /bin/bot-gifv-to-gif
+ENTRYPOINT /bin/bot

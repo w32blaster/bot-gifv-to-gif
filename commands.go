@@ -1,9 +1,10 @@
 package main
 
 import (
+	"io/ioutil"
 	"log"
-	"strings"
 	"regexp"
+	"strings"
 
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
@@ -38,7 +39,14 @@ func ProcessSimpleMessage(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
 		return
 	}
 
-	
+	ConvertFile(message.Text)
+
+	data, _ := ioutil.ReadFile("/tmp/temp_file_to_convert2.gif")
+	b := tgbotapi.FileBytes{Name: "image.gif", Bytes: data}
+
+	msg := tgbotapi.NewPhotoUpload(message.Chat.ID, b)
+	msg.Caption = "Test"
+	bot.Send(msg)
 }
 
 // test that the given URL is valid GIFV file

@@ -14,7 +14,7 @@ RUN cd /tmp && tar xJf ffmpeg.tar.xz
 #
 # Stage 2: compile and install giflossy
 #
-FROM alpine:3.8 AS build-giflossy
+FROM alpine:3.8 AS builder-giflossy
 
 RUN apk add --no-cache curl autoconf automake make build-base
 RUN curl -SL https://github.com/kornelski/giflossy/archive/1.91.tar.gz | tar xzv
@@ -26,16 +26,16 @@ RUN cp "$(which gifsicle)" /tmp/gifsicle
 # Stage 3: Compile and build Go app
 #
 
-FROM golang:alpine AS build-go
+FROM golang:alpine AS builder-go
 
 # Install Git for go get
 RUN set -eux; \
     apk add --no-cache --virtual git
 
 ENV GO_WORKDIR $GOPATH/src/github.com/w32blaster/bot-gifv-to-gif/
+WORKDIR $GO_WORKDIR
 
 ADD . $GO_WORKDIR
-RUN cd $GO_WORKDIR
 RUN go get -u gopkg.in/telegram-bot-api.v4 
 
 # RUN TESTS HERE AS WELL!
@@ -52,6 +52,4 @@ COPY --from=builder-ffmpeg /tmp/ffmpeg*/ffmpeg /bin/
 COPY --from=builder-giflossy /tmp/gifsicle /bin/
 COPY --from=builder-go /tmp/bot /bin/
 
-RUN chmod +x /bin/ffmpeg && chmod +x /bin/gifsicle && chmod +x /bin/bot
-
-ENTRYPOINT /bin/bot
+CMD ["/bin/bot"]

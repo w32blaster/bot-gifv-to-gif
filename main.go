@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/w32blaster/bot-price-monitoring/commands"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
 
@@ -41,11 +40,12 @@ func main() {
 			if update.Message.IsCommand() {
 
 				// This is a command starting with slash
-				commands.ProcessCommands(bot, update.Message)
+				ProcessCommands(bot, update.Message)
 
 			} else {
 
 				// simple message
+				ProcessSimpleMessage(bot, update.Message)
 			}
 
 		} else if update.CallbackQuery != nil {

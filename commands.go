@@ -41,6 +41,8 @@ func ProcessSimpleMessage(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
 		return
 	}
 
+	msgProcessing, _ := sendMsg(bot, message.Chat.ID, "Ok, processing...")
+
 	fileName, err := ConvertFile(message.Text)
 	if err != nil {
 		log.Println(err.Error())
@@ -53,8 +55,15 @@ func ProcessSimpleMessage(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
 	data, _ := ioutil.ReadFile(fmt.Sprintf("%s/%s.gif", StorageDirPath, fileName))
 	b := tgbotapi.FileBytes{Name: "image.gif", Bytes: data}
 
+	msgToDelete := tgbotapi.NewDeleteMessage(message.Chat.ID, msgProcessing.MessageID)
+	bot.Send(msgToDelete)
+
 	msg := tgbotapi.NewAnimationUpload(message.Chat.ID, b)
 	bot.Send(msg)
+
+	fileSize := ByteSize(int64(len(data))).String()
+	sendMsg(bot, message.Chat.ID, "Done! The result GIF file is "+fileSize)
+
 }
 
 // test that the given URL is valid GIFV file
@@ -94,4 +103,19 @@ func sendMsg(bot *tgbotapi.BotAPI, chatID int64, textMarkdown string) (tgbotapi.
 	}
 
 	return resp, err
+}
+
+// simple function that prints size of bytes in human readable form
+func byteCount(b int64) string {
+	const unit = 1000
+	if b < unit {
+		return fmt.Sprintf("%d B", b)
+	}
+	div, exp := int64(unit), 0
+	for n := b / unit; n >= unit; n /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.1f %cB",
+		float64(b)/float64(div), "kMGTPE"[exp])
 }

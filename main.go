@@ -54,15 +54,6 @@ func main() {
 				ProcessSimpleMessage(bot, update.Message)
 			}
 
-		} else if update.CallbackQuery != nil {
-
-			// this is the callback after a button click
-			// TODO
-
-		} else if update.InlineQuery != nil {
-
-			// this is inline query
-			// TODO
 		}
 
 	}

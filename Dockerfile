@@ -36,7 +36,8 @@ ENV GO_WORKDIR $GOPATH/src/github.com/w32blaster/bot-gifv-to-gif/
 WORKDIR $GO_WORKDIR
 
 ADD . $GO_WORKDIR
-RUN go get -u gopkg.in/telegram-bot-api.v4 
+RUN go get -u gopkg.in/telegram-bot-api.v4 && \
+    go get -u github.com/gofrs/uuid
 
 # RUN TESTS HERE AS WELL!
 

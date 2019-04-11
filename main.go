@@ -41,6 +41,8 @@ func main() {
 
 	for update := range updates {
 
+		log.Printf("[INFO] the bot was called by user %s (id: %d) with the command: %s", update.Message.From.UserName, update.Message.From.ID, update.Message.Text)
+
 		if update.Message != nil {
 
 			if update.Message.IsCommand() {

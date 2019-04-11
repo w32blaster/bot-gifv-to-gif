@@ -52,4 +52,7 @@ COPY --from=builder-ffmpeg /tmp/ffmpeg*/ffmpeg /bin/
 COPY --from=builder-giflossy /tmp/gifsicle /bin/
 COPY --from=builder-go /tmp/bot /bin/
 
+# copy root CA certificate to set up HTTPS connection with Telegram
+COPY --from=builder-go /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+
 CMD ["/bin/bot"]

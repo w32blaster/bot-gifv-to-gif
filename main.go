@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"flag"
 	"net/http"
 	"strconv"
@@ -27,8 +28,10 @@ func main() {
 
 	bot.Debug = *pIsDebug
 
+	log.Printf("Authorized on account %s", bot.Self.UserName)
+
 	// recommended to make the bot endpoint ending with its token to make it less guessable
-	updates := bot.ListenForWebhook("/" + *pBotToken)
+	updates := bot.ListenForWebhook("/" + bot.Token)
 
 	// ok, run the bot and listen given port
 	go http.ListenAndServe(":"+strconv.Itoa(*pPort), nil)
@@ -36,6 +39,7 @@ func main() {
 	for update := range updates {
 
 		if update.Message != nil {
+			log.Printf("Message was received: %+v", update.Message)
 
 			if update.Message.IsCommand() {
 

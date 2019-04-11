@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -12,17 +13,28 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	"github.com/gofrs/uuid"
 )
 
-func ConvertFile(url string) error {
+// StorageDirPath is where to save a downloaded file
+var StorageDirPath string
 
-	tmpFilePath, err := fetchRemote(url)
+// ConvertFile downloads and converts file
+func ConvertFile(url string) (string, error) {
+
+	// firstly, download the video file
+	tmpFileName, err := fetchRemote(url)
 	if err != nil {
-		return err
+		return "", err
 	}
-	convert(tmpFilePath)
 
-	return nil
+	// then, convert it
+	if err := convert(tmpFileName); err != nil {
+		return "", nil
+	}
+
+	return tmpFileName, nil
 }
 
 func fetchRemote(fileURL string) (string, error) {
@@ -34,12 +46,14 @@ func fetchRemote(fileURL string) (string, error) {
 
 	fileExt := path.Ext(url.Path)
 
-	// Gifv is a container for mp4
+	// Gifv is a container for mp4, so save it as mp4 file
 	if fileExt == ".gifv" {
 		fileURL = strings.Replace(fileURL, ".gifv", ".mp4", -1)
 	}
 
-	fileToConvert := "/tmp/temp_file_to_convert" + fileExt // REPLACE WITH TIMESTAMP
+	fileName := uuid.Must(uuid.NewV4()).String() // generate new name avoiding
+
+	fileToConvert := fmt.Sprintf("%s/%s%s", StorageDirPath, fileName, fileExt)
 	temp, err := os.Create(fileToConvert)
 	defer temp.Close()
 
@@ -60,32 +74,53 @@ func fetchRemote(fileURL string) (string, error) {
 		return "", err
 	}
 
-	return fileToConvert, nil
+	return fileName, nil
 }
 
-func convert(tmpFilePath string) error {
+func convert(fileName string) error {
 
 	// Convert movie to gif
-	outputImage := "/tmp/temp_file_to_convert2.gif"
-	ffmpeg := exec.Command("ffmpeg", "-i", tmpFilePath, "-pix_fmt", "rgb24", "-vf", "scale=300:-1", "-f", "gif", outputImage)
+	fileToConvert := fmt.Sprintf("%s/%s.mp4", StorageDirPath, fileName)
+	outputFile := fmt.Sprintf("%s/%s.gif", StorageDirPath, fileName)
+	ffmpeg := exec.Command("ffmpeg", "-i", fileToConvert, "-pix_fmt", "rgb24", "-vf", "scale=300:-1", "-f", "gif", outputFile)
 
 	var ffmpegErr bytes.Buffer
 	ffmpeg.Stderr = &ffmpegErr
 
 	err := ffmpeg.Run()
 	if err != nil {
+		log.Println("Can't convert to GIF: " + err.Error())
 		return errors.New(fmt.Sprint(err) + ": " + ffmpegErr.String())
 	}
 
 	// Optimize gif
-	sickle := exec.Command("gifsicle", "--careful", "-O3", "--batch", outputImage)
+	sickle := exec.Command("gifsicle", "--careful", "-O3", "--batch", outputFile)
 
 	var sicklekErr bytes.Buffer
 	sickle.Stderr = &sicklekErr
 
 	err = sickle.Run()
 	if err != nil {
+		log.Println("Can't optimyze GIF: " + err.Error())
 		return errors.New(fmt.Sprint(err) + ": " + sicklekErr.String())
+	}
+
+	return nil
+}
+
+// CleanUp remove all the generated and downloaded files
+func CleanUp(fileName string) error {
+	fileToConvert := fmt.Sprintf("%s/%s.mp4", StorageDirPath, fileName)
+	outputFile := fmt.Sprintf("%s/%s.gif", StorageDirPath, fileName)
+
+	if err := os.Remove(fileToConvert); err != nil {
+		log.Printf("Can't delete %s file, error: %s", fileToConvert, err.Error())
+		return err
+	}
+
+	if err := os.Remove(outputFile); err != nil {
+		log.Printf("Can't delete %s file, error: %s", outputFile, err.Error())
+		return err
 	}
 
 	return nil

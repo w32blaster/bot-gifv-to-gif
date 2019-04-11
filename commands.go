@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"regexp"
@@ -40,9 +41,16 @@ func ProcessSimpleMessage(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
 		return
 	}
 
-	ConvertFile(message.Text)
+	fileName, err := ConvertFile(message.Text)
+	if err != nil {
+		log.Println(err.Error())
+		sendMsg(bot, message.Chat.ID, "Error ocurred, sorry")
+		return
+	}
+	defer CleanUp(fileName)
 
-	data, _ := ioutil.ReadFile("/tmp/temp_file_to_convert2.gif")
+	// now send the file to chat
+	data, _ := ioutil.ReadFile(fmt.Sprintf("%s/%s.gif", StorageDirPath, fileName))
 	b := tgbotapi.FileBytes{Name: "image.gif", Bytes: data}
 
 	msg := tgbotapi.NewAnimationUpload(message.Chat.ID, b)

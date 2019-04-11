@@ -15,7 +15,10 @@ func main() {
 	pBotToken := flag.String("t", "", "Your bot's token. Mandatory")
 	pIsDebug := flag.Bool("d", true, "Is debug or not. Default is true")
 	pPort := flag.Int("p", 8444, "Port that the bot will run on. Default value is 8444")
+	pStoragePath := flag.String("s", "/tmp", "the path where to save downloaded file")
 	flag.Parse()
+
+	StorageDirPath = *pStoragePath
 
 	if len(*pBotToken) == 0 {
 		panic("The bot token is missing, this is the mandatory parapeter. Please specify it via -t flag. Exit.")

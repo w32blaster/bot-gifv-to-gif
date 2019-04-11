@@ -37,7 +37,7 @@ func ProcessCommands(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
 func ProcessSimpleMessage(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
 
 	if !ifGifvURL(message.Text) {
-		sendMsg(bot, message.Chat.ID, "Send me an URL please, for example, `https://i.imgur.com/pniMdmr.gifv`")
+		sendMsg(bot, message.Chat.ID, "Send me an URL please, for example, `https://i.imgur.com/pniMdmr.gifv` or `https://i.imgur.com/GuJXSQ9.mp4`")
 		return
 	}
 
@@ -55,11 +55,11 @@ func ProcessSimpleMessage(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
 	data, _ := ioutil.ReadFile(fmt.Sprintf("%s/%s.gif", StorageDirPath, fileName))
 	b := tgbotapi.FileBytes{Name: "image.gif", Bytes: data}
 
-	msgToDelete := tgbotapi.NewDeleteMessage(message.Chat.ID, msgProcessing.MessageID)
-	bot.Send(msgToDelete)
-
 	msg := tgbotapi.NewAnimationUpload(message.Chat.ID, b)
 	bot.Send(msg)
+
+	msgToDelete := tgbotapi.NewDeleteMessage(message.Chat.ID, msgProcessing.MessageID)
+	bot.Send(msgToDelete)
 
 	fileSize := ByteSize(int64(len(data))).String()
 	sendMsg(bot, message.Chat.ID, "Done! The result GIF file is "+fileSize)

@@ -34,6 +34,7 @@ func ProcessCommands(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
 
 // ProcessSimpleMessage is called when simeone sends a plain text, expected to be URL, but we need to check
 func ProcessSimpleMessage(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
+
 	if !ifGifvURL(message.Text) {
 		sendMsg(bot, message.Chat.ID, "Send me an URL please, for example, `https://i.imgur.com/pniMdmr.gifv`")
 		return
@@ -44,8 +45,7 @@ func ProcessSimpleMessage(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
 	data, _ := ioutil.ReadFile("/tmp/temp_file_to_convert2.gif")
 	b := tgbotapi.FileBytes{Name: "image.gif", Bytes: data}
 
-	msg := tgbotapi.NewPhotoUpload(message.Chat.ID, b)
-	msg.Caption = "Test"
+	msg := tgbotapi.NewAnimationUpload(message.Chat.ID, b)
 	bot.Send(msg)
 }
 

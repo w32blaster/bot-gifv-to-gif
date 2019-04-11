@@ -1,8 +1,8 @@
 package main
 
 import (
-	"log"
 	"flag"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -39,7 +39,6 @@ func main() {
 	for update := range updates {
 
 		if update.Message != nil {
-			log.Printf("Message was received: %+v", update.Message)
 
 			if update.Message.IsCommand() {
 

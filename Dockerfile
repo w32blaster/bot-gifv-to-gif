@@ -46,7 +46,7 @@ RUN cp bot /tmp
 #
 # Stage 4: build final image
 #
-FROM scratch
+FROM alpine:3.8 
 
 COPY --from=builder-ffmpeg /tmp/ffmpeg*/ffmpeg /bin/
 COPY --from=builder-giflossy /tmp/gifsicle /bin/

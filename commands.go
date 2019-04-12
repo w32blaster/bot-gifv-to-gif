@@ -44,12 +44,13 @@ func ProcessSimpleMessage(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
 	msgProcessing, _ := sendMsg(bot, message.Chat.ID, "Ok, processing...")
 
 	fileName, err := ConvertFile(message.Text)
+	defer CleanUp(fileName)
+
 	if err != nil {
 		log.Println(err.Error())
-		sendMsg(bot, message.Chat.ID, "Error ocurred, sorry")
+		sendMsg(bot, message.Chat.ID, "Error ocurred, sorry :(")
 		return
 	}
-	defer CleanUp(fileName)
 
 	// now send the file to chat
 	data, _ := ioutil.ReadFile(fmt.Sprintf("%s/%s.gif", StorageDirPath, fileName))

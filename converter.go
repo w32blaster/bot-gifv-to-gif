@@ -26,12 +26,12 @@ func ConvertFile(url string) (string, error) {
 	// firstly, download the video file
 	tmpFileName, err := fetchRemote(url)
 	if err != nil {
-		return "", err
+		return tmpFileName, err
 	}
 
 	// then, convert it
 	if err := convert(tmpFileName); err != nil {
-		return "", nil
+		return tmpFileName, err
 	}
 
 	return tmpFileName, nil

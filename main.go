@@ -31,7 +31,7 @@ func main() {
 
 	bot.Debug = *pIsDebug
 
-	log.Printf("Authorized on account %s", bot.Self.UserName)
+	log.Printf("Authorized on account %s; the isDebug = %t, save downloaded items to the %s", bot.Self.UserName, *pIsDebug, StorageDirPath)
 
 	// recommended to make the bot endpoint ending with its token to make it less guessable
 	updates := bot.ListenForWebhook("/" + bot.Token)

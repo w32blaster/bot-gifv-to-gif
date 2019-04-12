@@ -1,10 +1,9 @@
 #
 # Stage 1: Install dependencies
 #
-FROM alpine AS builder-ffmpeg
+FROM alpine:3.8 AS builder-ffmpeg
 
 ARG FFMPEG_URL=https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
-
 
 # Download ffmpeg
 ADD ${FFMPEG_URL} /tmp/ffmpeg.tar.xz
@@ -16,16 +15,15 @@ RUN cd /tmp && tar xJf ffmpeg.tar.xz
 #
 FROM alpine:3.8 AS builder-giflossy
 
-RUN apk add --no-cache curl autoconf automake make build-base
+RUN apk add --no-cache curl autoconf automake g++ make build-base
 RUN curl -SL https://github.com/kornelski/giflossy/archive/1.91.tar.gz | tar xzv
-RUN cd giflossy-1.91 && autoreconf -i && ./configure && make install
+RUN cd giflossy-1.91 && autoreconf -i && ./configure --disable-gifview && make install
 RUN cp "$(which gifsicle)" /tmp/gifsicle
 
 
 #
 # Stage 3: Compile and build Go app
 #
-
 FROM golang:alpine AS builder-go
 
 # Install Git for go get
@@ -43,6 +41,7 @@ RUN go get -u gopkg.in/telegram-bot-api.v4 && \
 
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o bot .
 RUN cp bot /tmp
+
 
 #
 # Stage 4: build final image

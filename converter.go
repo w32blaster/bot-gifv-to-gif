@@ -7,11 +7,8 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"os/exec"
-	"path"
-	"strings"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -39,21 +36,9 @@ func ConvertFile(url string) (string, error) {
 
 func fetchRemote(fileURL string) (string, error) {
 
-	url, err := url.Parse(fileURL)
-	if err != nil {
-		return "", err
-	}
+	fileName := uuid.Must(uuid.NewV4()).String() // generate new name avoiding collision
 
-	fileExt := path.Ext(url.Path)
-
-	// Gifv is a container for mp4, so save it as mp4 file
-	if fileExt == ".gifv" {
-		fileURL = strings.Replace(fileURL, ".gifv", ".mp4", -1)
-	}
-
-	fileName := uuid.Must(uuid.NewV4()).String() // generate new name avoiding
-
-	fileToConvert := fmt.Sprintf("%s/%s%s", StorageDirPath, fileName, fileExt)
+	fileToConvert := fmt.Sprintf("%s/%s.mp4", StorageDirPath, fileName)
 	temp, err := os.Create(fileToConvert)
 	defer temp.Close()
 

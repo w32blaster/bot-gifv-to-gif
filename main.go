@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
@@ -22,6 +23,16 @@ func main() {
 
 	if len(*pBotToken) == 0 {
 		panic("The bot token is missing, this is the mandatory parapeter. Please specify it via -t flag. Exit.")
+	}
+
+	if !*pIsDebug {
+		f, err := os.OpenFile(StorageDirPath+"/log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+		if err != nil {
+			log.Fatalf("error opening log file: %v", err)
+		}
+		defer f.Close()
+
+		log.SetOutput(f)
 	}
 
 	bot, err := tgbotapi.NewBotAPI(*pBotToken)

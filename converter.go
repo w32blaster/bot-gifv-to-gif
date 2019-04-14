@@ -15,6 +15,11 @@ import (
 	"github.com/gofrs/uuid"
 )
 
+const (
+	maxFileSizeAllowed = 1024 * 1024 * 15 // 15Mb
+	errorFileToHeavy   = "FILE_TO_HEAVY"
+)
+
 // StorageDirPath is where to save a downloaded file
 var StorageDirPath string
 
@@ -58,6 +63,11 @@ func fetchRemote(fileURL string) (string, error) {
 		return "", err
 	}
 	defer resp.Body.Close()
+
+	if resp.ContentLength > maxFileSizeAllowed {
+		log.Printf("[WARNING] someone tried to download too heavy file with URL %s and size %d (%d Mb)", fileURL, resp.ContentLength, resp.ContentLength/(1024*1024))
+		return "", errors.New(errorFileToHeavy)
+	}
 
 	_, err = io.Copy(temp, resp.Body)
 	if err != nil {

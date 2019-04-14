@@ -47,7 +47,13 @@ func ProcessSimpleMessage(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
 	defer CleanUp(fileName)
 
 	if err != nil {
-		log.Println(err.Error())
+
+		if err.Error() == errorFileToHeavy {
+			sendMsg(bot, message.Chat.ID, "File is too heavy")
+			return
+		}
+
+		log.Println("[ERROR] " + err.Error())
 		sendMsg(bot, message.Chat.ID, "Error ocurred, sorry :(")
 		return
 	}
@@ -97,13 +103,7 @@ func sendMsg(bot *tgbotapi.BotAPI, chatID int64, textMarkdown string) (tgbotapi.
 	msg.DisableWebPagePreview = true
 
 	// send the message
-	resp, err := bot.Send(msg)
-	if err != nil {
-		log.Println("bot.Send:", err, resp)
-		return resp, err
-	}
-
-	return resp, err
+	return bot.Send(msg)
 }
 
 // simple function that prints size of bytes in human readable form
